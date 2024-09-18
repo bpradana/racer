@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from queue import Queue
 from threading import Thread
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Tuple
 
 
 class BaseTask(ABC):
@@ -39,10 +39,14 @@ class Task(BaseTask):
         super().__init__(name, target, args, kwargs, use_prev_result)
 
     def run(self, prev_result=None):
-        # Pass previous result if needed
         if self.use_prev_result and prev_result is not None:
-            self.args = self.args + (prev_result,)
-        return self.target(*self.args, **self.kwargs)
+            if self.args:
+                args = self.args + (prev_result,)
+            else:
+                args = (prev_result,)
+            return self.target(*args, **self.kwargs)
+        else:
+            return self.target(*self.args, **self.kwargs)
 
 
 class ParallelTask(BaseTask):
@@ -58,19 +62,23 @@ class ParallelTask(BaseTask):
         super().__init__(name, target, args, kwargs, use_prev_result)
         self.num_workers = num_workers
         self.targets = [target] * num_workers
-        self.results = Queue()  # Queue to store results from each thread
 
-    def worker(self, target: Callable, *args, **kwargs):
+    def _worker(
+        self, target: Callable, results: Queue, prev_result=None, *args, **kwargs
+    ):
+        if self.use_prev_result and prev_result is not None:
+            args = args + (prev_result,)
         result = target(*args, **kwargs)
-        self.results.put(result)
+        results.put(result)
 
     def run(self, prev_result=None):
-        # Pass previous result if needed
-        if self.use_prev_result and prev_result is not None:
-            self.args = self.args + (prev_result,)
-
+        results = Queue()
         threads = [
-            Thread(target=self.worker, args=(target, *self.args), kwargs=self.kwargs)
+            Thread(
+                target=self._worker,
+                args=(target, results, prev_result, *self.args),
+                kwargs=self.kwargs,
+            )
             for target in self.targets
         ]
         for thread in threads:
@@ -78,10 +86,9 @@ class ParallelTask(BaseTask):
         for thread in threads:
             thread.join()
 
-        # Collect results from the queue
         result_list = []
-        while not self.results.empty():
-            result_list.append(self.results.get())
+        while not results.empty():
+            result_list.append(results.get())
 
         return result_list
 
@@ -90,11 +97,25 @@ class Racer:
     def __init__(self, tasks: List[BaseTask]):
         self.tasks = tasks
 
-    def run(self):
-        results = {}
+    def _run_task_set(self, results: dict, thread_id: int):
+        thread_results = {}
         prev_result = None
         for task in self.tasks:
             result = task.run(prev_result=prev_result)
-            results[task.name] = result
-            prev_result = result  # Pass the current result to the next task
+            thread_results[f"{task.name}"] = result
+            prev_result = result
+        results[thread_id] = thread_results
+
+    def run(self, num_clones: int = 1):
+        threads = []
+        results = {}
+
+        for i in range(num_clones):
+            thread = Thread(target=self._run_task_set, args=(results, i))
+            threads.append(thread)
+            thread.start()
+
+        for thread in threads:
+            thread.join()
+
         return results

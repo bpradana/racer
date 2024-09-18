@@ -15,7 +15,7 @@ def requirements(fname):
 
 
 setup(
-    name="racer",
+    name="task-racer",
     version=VERSION,
     author="Bintang Pradana Erlangga Putra",
     author_email="<work.bpradana@gmail.com>",
@@ -25,7 +25,7 @@ setup(
     url="https://github.com/bpradana/racer",
     packages=find_packages(),
     install_requires=requirements("requirements.txt"),
-    keywords=["python", "rtsp", "streaming", "video"],
+    keywords=["python", "race condition", "task", "runner"],
     classifiers=[
         "Development Status :: 1 - Planning",
         "Intended Audience :: Developers",

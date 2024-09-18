@@ -1,1 +1,1 @@
-from racer.racer import ParallelTask, Racer, Task
+from racer.racer import BaseTask, ParallelTask, Racer, Task
