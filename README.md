@@ -43,10 +43,15 @@ To run a task in parallel, use the ParallelTask class. You can specify the numbe
 ```python
 from racer import ParallelTask
 
+def add(x: int, y: int):
+    return x + y
+
 def mul(x: int, y: int):
     return x * y
 
-parallel_task = ParallelTask(name="task3", target=mul, num_workers=3, args=(5, 6))
+task1 = Task(name="task1", target=add, kwargs={"x": 1, "y": 5})
+task2 = Task(name="task2", target=mul, args=(3, 4))
+parallel_task = ParallelTask(name="task3", tasks=[task1, task2])
 
 racer = Racer([parallel_task])
 result = racer.run(1)
@@ -55,7 +60,28 @@ print(result)
 
 Output:
 ```python
-{0: {'task3': [30, 30, 30]}}
+{0: {'task3': [6, 12]}}
+```
+
+### Running Clone Tasks
+To run a task multiple times, use the CloneTask class. You can specify the number of clones to run.
+
+```python
+from racer import CloneTask
+
+def add(x: int, y: int):
+    return x + y
+
+clone_task = CloneTask(name="task1", target=add, kwargs={"x": 1, "y": 5})
+
+racer = Racer([clone_task])
+result = racer.run(3)
+print(result)
+```
+
+Output:
+```python
+{0: {'task1': [6, 6, 6]}}
 ```
 
 ### Passing the Previous Task’s Result to the Next Task
