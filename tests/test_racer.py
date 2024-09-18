@@ -32,7 +32,10 @@ class TestTask(unittest.TestCase):
 class TestParallelTask(unittest.TestCase):
     def test_parallel_task_run(self):
         task = ParallelTask(
-            name="parallel_task1", target=sample_task, num_workers=3, args=(1, 2)
+            name="parallel_task1",
+            target=sample_task,
+            num_workers=3,
+            args=(1, 2),
         )
         results = task.run()
         self.assertEqual(results, [3, 3, 3])

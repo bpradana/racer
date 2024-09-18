@@ -11,7 +11,16 @@ def long_description(fname):
 
 
 def requirements(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read().splitlines()
+    return (
+        open(
+            os.path.join(
+                os.path.dirname(__file__),
+                fname,
+            )
+        )
+        .read()
+        .splitlines()
+    )
 
 
 setup(

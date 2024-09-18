@@ -11,7 +11,7 @@ class BaseTask(ABC):
         target: Callable,
         args: Tuple = (),
         kwargs: Dict = {},
-        use_prev_result: bool = False,  # Flag to indicate if this task wants the previous result
+        use_prev_result: bool = False,
     ):
         self.name = name
         self.target = target
@@ -64,7 +64,12 @@ class ParallelTask(BaseTask):
         self.targets = [target] * num_workers
 
     def _worker(
-        self, target: Callable, results: Queue, prev_result=None, *args, **kwargs
+        self,
+        target: Callable,
+        results: Queue,
+        prev_result=None,
+        *args,
+        **kwargs,
     ):
         if self.use_prev_result and prev_result is not None:
             args = args + (prev_result,)
