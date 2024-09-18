@@ -1,7 +1,7 @@
 import unittest
 from typing import List
 
-from racer import BaseTask, ParallelTask, Racer, Task
+from racer import BaseTask, CloneTask, ParallelTask, Racer, Task
 
 
 def sample_task(x, y):
@@ -31,8 +31,34 @@ class TestTask(unittest.TestCase):
 
 class TestParallelTask(unittest.TestCase):
     def test_parallel_task_run(self):
-        task = ParallelTask(
-            name="parallel_task1",
+        task1 = Task(name="task1", target=sample_task, args=(1, 2))
+        task2 = Task(name="task2", target=sample_task, args=(3, 4))
+        parallel_task = ParallelTask(name="parallel_task", tasks=[task1, task2])
+        results = parallel_task.run()
+        self.assertEqual(results, [3, 7])
+
+    def test_parallel_task_run_with_prev_result(self):
+        task1 = Task(
+            name="task1",
+            target=sample_task_with_prev_result,
+            args=(1, 2),
+            use_prev_result=True,
+        )
+        task2 = Task(
+            name="task2",
+            target=sample_task_with_prev_result,
+            args=(3, 4),
+            use_prev_result=True,
+        )
+        parallel_task = ParallelTask(name="parallel_task", tasks=[task1, task2])
+        results = parallel_task.run(prev_result=5)
+        self.assertEqual(results, [8, 12])
+
+
+class TestCloneTask(unittest.TestCase):
+    def test_clone_task_run(self):
+        task = CloneTask(
+            name="clone_task1",
             target=sample_task,
             num_workers=3,
             args=(1, 2),
@@ -40,9 +66,9 @@ class TestParallelTask(unittest.TestCase):
         results = task.run()
         self.assertEqual(results, [3, 3, 3])
 
-    def test_parallel_task_run_with_prev_result(self):
-        task = ParallelTask(
-            name="parallel_task2",
+    def test_clone_task_run_with_prev_result(self):
+        task = CloneTask(
+            name="clone_task2",
             target=sample_task_with_prev_result,
             num_workers=3,
             args=(1, 2),
@@ -66,7 +92,7 @@ class TestRacer(unittest.TestCase):
                 args=(3, 4),
                 use_prev_result=True,
             ),
-            ParallelTask(
+            CloneTask(
                 name="task3",
                 target=sample_task_with_prev_result,
                 num_workers=2,

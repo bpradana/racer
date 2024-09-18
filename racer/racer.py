@@ -53,6 +53,43 @@ class ParallelTask(BaseTask):
     def __init__(
         self,
         name: str,
+        tasks: List[BaseTask],
+    ):
+        self.name = name
+        self.tasks = tasks
+
+    def _worker(self, task: BaseTask, results: Queue, prev_result=None):
+        if task.use_prev_result and prev_result is not None:
+            result = task.run(prev_result)
+        else:
+            result = task.run()
+        results.put(result)
+
+    def run(self, prev_result=None):
+        results = Queue()
+        threads = [
+            Thread(
+                target=self._worker,
+                args=(task, results, prev_result),
+            )
+            for task in self.tasks
+        ]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+
+        result_list = []
+        while not results.empty():
+            result_list.append(results.get())
+
+        return result_list
+
+
+class CloneTask(BaseTask):
+    def __init__(
+        self,
+        name: str,
         target: Callable,
         num_workers: int,
         args: Tuple = (),

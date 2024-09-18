@@ -1,3 +1,3 @@
-from .racer import BaseTask, ParallelTask, Racer, Task
+from .racer import BaseTask, CloneTask, ParallelTask, Racer, Task
 
-__all__ = ["BaseTask", "Task", "ParallelTask", "Racer"]
+__all__ = ["BaseTask", "Task", "CloneTask", "Racer"]
