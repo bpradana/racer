@@ -28,13 +28,13 @@ task1 = Task(name="task1", target=add, kwargs={"x": 1, "y": 5})
 task2 = Task(name="task2", target=mul, args=(3, 4))
 
 racer = Racer([task1, task2])
-result = racer.run()
+result = racer.run(1)
 print(result)
 ```
 
 Output:
 ```python
-{'task1': 6, 'task2': 12}
+{0: {'task1': 6, 'task2': 12}}
 ```
 
 ### Running Parallel Task
@@ -49,13 +49,13 @@ def mul(x: int, y: int):
 parallel_task = ParallelTask(name="task3", target=mul, num_workers=3, args=(5, 6))
 
 racer = Racer([parallel_task])
-result = racer.run()
+result = racer.run(1)
 print(result)
 ```
 
 Output:
 ```python
-{'task3': [30, 30, 30]}
+{0: {'task3': [30, 30, 30]}}
 ```
 
 ### Passing the Previous Task’s Result to the Next Task
@@ -69,14 +69,28 @@ task1 = Task(name="task1", target=add, kwargs={"x": 1, "y": 5})
 task2 = Task(name="task2", target=sub, args=(3, 4), use_prev_result=True)
 
 racer = Racer([task1, task2])
-result = racer.run()
+result = racer.run(1)
 print(result)
 ```
 In this example, the result of task1 is passed as an additional argument to task2.
 
 Output:
 ```python
-{'task1': 6, 'task2': -1}
+{0: {'task1': 6, 'task2': -1}}
+```
+
+### Running with Clones
+You can run the same set of tasks multiple times by passing the number of clones to the run method.
+
+```python
+racer = Racer([task1, task2])
+result = racer.run(3)
+print(result)
+```
+
+Output:
+```python
+{0: {'task1': 6, 'task2': -1}, 1: {'task1': 6, 'task2': -1}, 2: {'task1': 6, 'task2': -1}}
 ```
 
 ### More Examples
@@ -105,11 +119,11 @@ if __name__ == "__main__":
 
     # tasks will be run sequentially
     racer = Racer([task1, task2, task3])
-    results = racer.run()
+    results = racer.run(1)
     print(results)
 ```
 
 Output:
 ```python
-{'task1': 6, 'task2': -7, 'task3': [30, 30, 30]}
+{0: {'task1': 6, 'task2': -7, 'task3': [30, 30, 30]}}
 ```
